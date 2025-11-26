@@ -1,0 +1,272 @@
+//ADMIN CODE
+CREATE DATABASE quizdb;
+USE quizdb;
+
+CREATE TABLE admin(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50),
+    password VARCHAR(50)
+);
+
+INSERT INTO admin(username, password) VALUES('admin', 'admin123');
+
+CREATE TABLE questions(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question TEXT,
+    option1 VARCHAR(255),
+    option2 VARCHAR(255),
+    option3 VARCHAR(255),
+    option4 VARCHAR(255),
+    correct_option INT
+);
+import java.sql.*;
+
+public class Database {
+    private static final String URL = "jdbc:mysql://localhost:3306/quizdb";
+    private static final String USER = "root";
+    private static final String PASS = "YOUR_PASSWORD";
+
+    public static Connection getConnection() {
+        try {
+            return DriverManager.getConnection(URL, USER, PASS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+}
+public class Question {
+    int id;
+    String question;
+    String option1;
+    String option2;
+    String option3;
+    String option4;
+    int correctOption;
+
+    public Question(int id, String q, String o1, String o2, String o3, String o4, int correct) {
+        this.id = id;
+        this.question = q;
+        this.option1 = o1;
+        this.option2 = o2;
+        this.option3 = o3;
+        this.option4 = o4;
+        this.correctOption = correct;
+    }
+}
+import java.sql.*;
+import java.util.*;
+
+public class AdminService {
+
+    Scanner sc = new Scanner(System.in);
+
+    // ---------------- LOGIN ------------------
+    public boolean adminLogin() {
+        System.out.print("Enter Admin Username: ");
+        String user = sc.nextLine();
+        System.out.print("Enter Password: ");
+        String pass = sc.nextLine();
+
+        try {
+            Connection con = Database.getConnection();
+
+            String sql = "SELECT * FROM admin WHERE username=? AND password=?";
+            PreparedStatement pst = con.prepareStatement(sql);
+            pst.setString(1, user);
+            pst.setString(2, pass);
+
+            ResultSet rs = pst.executeQuery();
+
+            return rs.next();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // ---------------- ADD QUESTION ------------------
+    public void addQuestion() {
+        try {
+            Connection con = Database.getConnection();
+
+            System.out.println("\nEnter Question: ");
+            String q = sc.nextLine();
+
+            System.out.println("Option 1: ");
+            String o1 = sc.nextLine();
+            System.out.println("Option 2: ");
+            String o2 = sc.nextLine();
+            System.out.println("Option 3: ");
+            String o3 = sc.nextLine();
+            System.out.println("Option 4: ");
+            String o4 = sc.nextLine();
+
+            System.out.println("Correct Option Number (1-4): ");
+            int correct = sc.nextInt();
+            sc.nextLine();
+
+            String sql = "INSERT INTO questions(question, option1, option2, option3, option4, correct_option) VALUES(?,?,?,?,?,?)";
+
+            PreparedStatement pst = con.prepareStatement(sql);
+            pst.setString(1, q);
+            pst.setString(2, o1);
+            pst.setString(3, o2);
+            pst.setString(4, o3);
+            pst.setString(5, o4);
+            pst.setInt(6, correct);
+
+            pst.executeUpdate();
+            System.out.println("Question Added Successfully!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ---------------- VIEW QUESTIONS ------------------
+    public void viewQuestions() {
+        try {
+            Connection con = Database.getConnection();
+
+            String sql = "SELECT * FROM questions";
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery(sql);
+
+            System.out.println("\n------ ALL QUESTIONS ------\n");
+
+            while (rs.next()) {
+                System.out.println("ID: " + rs.getInt("id"));
+                System.out.println("Q: " + rs.getString("question"));
+                System.out.println("1. " + rs.getString("option1"));
+                System.out.println("2. " + rs.getString("option2"));
+                System.out.println("3. " + rs.getString("option3"));
+                System.out.println("4. " + rs.getString("option4"));
+                System.out.println("Correct: " + rs.getInt("correct_option"));
+                System.out.println("-------------------------------");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ---------------- DELETE QUESTION ------------------
+    public void deleteQuestion() {
+        System.out.print("Enter Question ID to delete: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        try {
+            Connection con = Database.getConnection();
+
+            String sql = "DELETE FROM questions WHERE id=?";
+            PreparedStatement pst = con.prepareStatement(sql);
+            pst.setInt(1, id);
+
+            pst.executeUpdate();
+            System.out.println("Question Deleted!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ---------------- UPDATE QUESTION ------------------
+    public void updateQuestion() {
+
+        System.out.print("Enter Question ID to update: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        try {
+            Connection con = Database.getConnection();
+
+            System.out.println("Enter New Question: ");
+            String q = sc.nextLine();
+
+            System.out.println("Option 1: ");
+            String o1 = sc.nextLine();
+            System.out.println("Option 2: ");
+            String o2 = sc.nextLine();
+            System.out.println("Option 3: ");
+            String o3 = sc.nextLine();
+            System.out.println("Option 4: ");
+            String o4 = sc.nextLine();
+
+            System.out.println("Correct Option Number (1-4): ");
+            int correct = sc.nextInt();
+            sc.nextLine();
+
+            String sql = "UPDATE questions SET question=?, option1=?, option2=?, option3=?, option4=?, correct_option=? WHERE id=?";
+
+            PreparedStatement pst = con.prepareStatement(sql);
+            pst.setString(1, q);
+            pst.setString(2, o1);
+            pst.setString(3, o2);
+            pst.setString(4, o3);
+            pst.setString(5, o4);
+            pst.setInt(6, correct);
+            pst.setInt(7, id);
+
+            pst.executeUpdate();
+            System.out.println("Question Updated!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+import java.util.*;
+
+public class AdminMain {
+
+    public static void main(String[] args) {
+
+        AdminService admin = new AdminService();
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("---- ADMIN LOGIN ----");
+
+        if (admin.adminLogin()) {
+            System.out.println("\nLogin Successful!");
+
+            while (true) {
+                System.out.println("\n---- ADMIN MENU ----");
+                System.out.println("1. Add Question");
+                System.out.println("2. View Questions");
+                System.out.println("3. Update Question");
+                System.out.println("4. Delete Question");
+                System.out.println("5. Exit");
+
+                System.out.print("Enter choice: ");
+                int choice = sc.nextInt();
+                sc.nextLine();
+
+                switch (choice) {
+                    case 1:
+                        admin.addQuestion();
+                        break;
+                    case 2:
+                        admin.viewQuestions();
+                        break;
+                    case 3:
+                        admin.updateQuestion();
+                        break;
+                    case 4:
+                        admin.deleteQuestion();
+                        break;
+                    case 5:
+                        System.out.println("Exiting...");
+                        return;
+                    default:
+                        System.out.println("Invalid Choice!");
+                }
+            }
+
+        } else {
+            System.out.println("Invalid Login!");
+        }
+    }
+}

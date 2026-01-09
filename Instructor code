@@ -1,0 +1,238 @@
+//Study Material Entity (Upload Resources)
+package com.lms.model;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Material {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+    private String resourceLink; // PDF / video link
+
+    @ManyToOne
+    private Course course;
+
+    // Getters & Setters
+}
+
+//Quiz Entity (Design Quizzes)
+package com.lms.model;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Quiz {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+
+    @ManyToOne
+    private Course course;
+
+    // Getters & Setters
+}
+
+//Question Entity
+package com.lms.model;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Question {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String question;
+    private String correctAnswer;
+
+    @ManyToOne
+    private Quiz quiz;
+
+    // Getters & Setters
+}
+
+//Result Entity (Track Student Performance)
+package com.lms.model;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Result {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    private User student;
+
+    @ManyToOne
+    private Quiz quiz;
+
+    private int score;
+
+    // Getters & Setters
+}
+
+//Repositories
+MaterialRepository
+package com.lms.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.lms.model.Material;
+
+public interface MaterialRepository extends JpaRepository<Material, Long> {
+}
+
+QuizRepository
+package com.lms.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.lms.model.Quiz;
+
+public interface QuizRepository extends JpaRepository<Quiz, Long> {
+}
+
+QuestionRepository
+package com.lms.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.lms.model.Question;
+
+public interface QuestionRepository extends JpaRepository<Question, Long> {
+}
+
+ResultRepository
+package com.lms.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+import com.lms.model.Result;
+import com.lms.model.User;
+
+public interface ResultRepository extends JpaRepository<Result, Long> {
+    List<Result> findByStudent(User student);
+}
+
+//Instructor Service (Business Logic)
+package com.lms.service;
+
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+import com.lms.model.*;
+import com.lms.repository.*;
+
+@Service
+public class InstructorService {
+
+    private final MaterialRepository materialRepo;
+    private final QuizRepository quizRepo;
+    private final QuestionRepository questionRepo;
+    private final SubmissionRepository submissionRepo;
+    private final ResultRepository resultRepo;
+
+    public InstructorService(MaterialRepository materialRepo,
+                             QuizRepository quizRepo,
+                             QuestionRepository questionRepo,
+                             SubmissionRepository submissionRepo,
+                             ResultRepository resultRepo) {
+        this.materialRepo = materialRepo;
+        this.quizRepo = quizRepo;
+        this.questionRepo = questionRepo;
+        this.submissionRepo = submissionRepo;
+        this.resultRepo = resultRepo;
+    }
+
+    // Upload study material
+    public Material uploadMaterial(Material material) {
+        return materialRepo.save(material);
+    }
+
+    // Create quiz
+    public Quiz createQuiz(Quiz quiz) {
+        return quizRepo.save(quiz);
+    }
+
+    // Add question
+    public Question addQuestion(Question question) {
+        return questionRepo.save(question);
+    }
+
+    // Grade assignment
+    public Submission gradeSubmission(Long submissionId, String grade) {
+        Submission sub = submissionRepo.findById(submissionId).orElseThrow();
+        sub.setGrade(grade);
+        return submissionRepo.save(sub);
+    }
+
+    // Track student performance
+    public List<Result> getStudentPerformance(User student) {
+        return resultRepo.findByStudent(student);
+    }
+}
+
+//Instructor Controller (APIs)
+package com.lms.controller;
+
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+import com.lms.model.*;
+import com.lms.repository.UserRepository;
+import com.lms.service.InstructorService;
+
+@RestController
+@RequestMapping("/api/instructor")
+public class InstructorController {
+
+    private final InstructorService service;
+    private final UserRepository userRepo;
+
+    public InstructorController(InstructorService service,
+                                UserRepository userRepo) {
+        this.service = service;
+        this.userRepo = userRepo;
+    }
+
+    // Upload material
+    @PostMapping("/material")
+    public Material uploadMaterial(@RequestBody Material material) {
+        return service.uploadMaterial(material);
+    }
+
+    // Create quiz
+    @PostMapping("/quiz")
+    public Quiz createQuiz(@RequestBody Quiz quiz) {
+        return service.createQuiz(quiz);
+    }
+
+    // Add question
+    @PostMapping("/question")
+    public Question addQuestion(@RequestBody Question question) {
+        return service.addQuestion(question);
+    }
+
+    // Grade assignment
+    @PostMapping("/grade/{submissionId}")
+    public Submission grade(@PathVariable Long submissionId,
+                             @RequestBody String grade) {
+        return service.gradeSubmission(submissionId, grade);
+    }
+
+    // Track student performance
+    @GetMapping("/performance/{studentId}")
+    public List<Result> performance(@PathVariable Long studentId) {
+        User student = userRepo.findById(studentId).orElseThrow();
+        return service.getStudentPerformance(student);
+    }
+}

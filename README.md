@@ -1,6 +1,6 @@
-# Lms-project-java
+//Lms-project-java
 //The LMS enables:  Course creation and content management  Student enrollment &amp; assignment workflows  Performance tracking for learners  System monitoring and analytics for administrators  Admin → Manages users, system, and analytics Instructor → Builds courses &amp; evaluates students Student → Learns, submits work, tracks progress
-#pom.xml
+//pom.xml
 <project xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
 
@@ -47,7 +47,7 @@
     </build>
 </project>
 
-#application.properties
+//application.properties
 spring.datasource.url=jdbc:mysql://localhost:3306/lms_db
 spring.datasource.username=root
 spring.datasource.password=yourpassword
@@ -56,7 +56,7 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
 
-#LmsApplication.java
+//LmsApplication.java
 package com.lms;
 
 import org.springframework.boot.SpringApplication;
@@ -70,7 +70,7 @@ public class LmsApplication {
     }
 }
 
-#User.java
+//User.java
 package com.lms.model;
 
 import jakarta.persistence.*;
@@ -99,7 +99,7 @@ public class User {
     // Getters and Setters
 }
 
-#Course.java
+//Course.java
 package com.lms.model;
 
 import jakarta.persistence.*;
@@ -120,7 +120,7 @@ public class Course {
     // Getters and Setters
 }
 
-#UserRepository.java
+//UserRepository.java
 package com.lms.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -130,7 +130,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmail(String email);
 }
 
-#CourseRepository.java
+//CourseRepository.java
 package com.lms.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -139,7 +139,7 @@ import com.lms.model.Course;
 public interface CourseRepository extends JpaRepository<Course, Long> {
 }
 
-#UserService.java
+//UserService.java
 package com.lms.service;
 
 import org.springframework.stereotype.Service;
@@ -160,7 +160,7 @@ public class UserService {
     }
 }
 
-#CourseService.java
+//CourseService.java
 package com.lms.service;
 
 import org.springframework.stereotype.Service;
@@ -186,7 +186,7 @@ public class CourseService {
     }
 }
 
-#AuthController.java
+//AuthController.java
 package com.lms.controller;
 
 import jakarta.validation.Valid;
@@ -210,7 +210,7 @@ public class AuthController {
     }
 }
 
-#CourseController.java
+//CourseController.java
 package com.lms.controller;
 
 import jakarta.validation.Valid;
@@ -240,7 +240,7 @@ public class CourseController {
     }
 }
 
-#GlobalExceptionHandler.java
+//GlobalExceptionHandler.java
 package com.lms.exception;
 
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -260,33 +260,6 @@ public class GlobalExceptionHandler {
     }
 }
 
-#README.md
-# Learning Management System (LMS)
 
-## Description
-A basic LMS backend built using Spring Boot and MySQL.
-
-## Features
-- User Registration
-- Course Management
-- Validation & Error Handling
-- REST APIs
-
-## Tech Stack
-- Java
-- Spring Boot
-- MySQL
-- Hibernate (JPA)
-
-## How to Run
-1. Create database `lms_db`
-2. Update MySQL credentials
-3. Run `LmsApplication.java`
-4. Test APIs using Postman
-
-## API Endpoints
-POST /api/auth/register  
-POST /api/courses  
-GET /api/courses
 
 

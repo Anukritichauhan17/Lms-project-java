@@ -1,0 +1,29 @@
+lms-project/
+│
+├── pom.xml
+├── README.md
+│
+├── src/main/java/com/lms/
+│   ├── LmsApplication.java
+│
+│   ├── model/
+│   │   ├── User.java
+│   │   └── Course.java
+│
+│   ├── repository/
+│   │   ├── UserRepository.java
+│   │   └── CourseRepository.java
+│
+│   ├── service/
+│   │   ├── UserService.java
+│   │   └── CourseService.java
+│
+│   ├── controller/
+│   │   ├── AuthController.java
+│   │   └── CourseController.java
+│
+│   └── exception/
+│       └── GlobalExceptionHandler.java
+│
+└── src/main/resources/
+    └── application.properties

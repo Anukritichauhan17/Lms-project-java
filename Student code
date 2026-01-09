@@ -1,0 +1,204 @@
+//Enrollment Entity (Student Learns Course)
+package com.lms.model;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Enrollment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    private User student;
+
+    @ManyToOne
+    private Course course;
+
+    private String status; // ENROLLED, COMPLETED
+
+    // Getters & Setters
+}
+
+//Assignment Entity
+package com.lms.model;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Assignment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+
+    @ManyToOne
+    private Course course;
+
+    // Getters & Setters
+}
+
+//Submission Entity (Student Submits Work)
+package com.lms.model;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Submission {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    private Assignment assignment;
+
+    @ManyToOne
+    private User student;
+
+    private String content;   // text / link
+    private String grade;     // A, B, Pending
+
+    // Getters & Setters
+}
+
+//Enrollment Repository
+package com.lms.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+import com.lms.model.Enrollment;
+import com.lms.model.User;
+
+public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
+    List<Enrollment> findByStudent(User student);
+}
+
+//Assignment Repository
+package com.lms.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.lms.model.Assignment;
+
+public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
+}
+
+//Submission Repository
+package com.lms.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+import com.lms.model.Submission;
+import com.lms.model.User;
+
+public interface SubmissionRepository extends JpaRepository<Submission, Long> {
+    List<Submission> findByStudent(User student);
+}
+
+//Student Service (Business Logic)
+package com.lms.service;
+
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+import com.lms.model.*;
+import com.lms.repository.*;
+
+@Service
+public class StudentService {
+
+    private final EnrollmentRepository enrollmentRepo;
+    private final SubmissionRepository submissionRepo;
+    private final AssignmentRepository assignmentRepo;
+
+    public StudentService(EnrollmentRepository enrollmentRepo,
+                          SubmissionRepository submissionRepo,
+                          AssignmentRepository assignmentRepo) {
+        this.enrollmentRepo = enrollmentRepo;
+        this.submissionRepo = submissionRepo;
+        this.assignmentRepo = assignmentRepo;
+    }
+
+    // Enroll student
+    public Enrollment enroll(User student, Course course) {
+        Enrollment e = new Enrollment();
+        e.setStudent(student);
+        e.setCourse(course);
+        e.setStatus("ENROLLED");
+        return enrollmentRepo.save(e);
+    }
+
+    // Submit assignment
+    public Submission submitAssignment(User student, Assignment assignment, String content) {
+        Submission s = new Submission();
+        s.setStudent(student);
+        s.setAssignment(assignment);
+        s.setContent(content);
+        s.setGrade("Pending");
+        return submissionRepo.save(s);
+    }
+
+    // Track progress
+    public List<Enrollment> getProgress(User student) {
+        return enrollmentRepo.findByStudent(student);
+    }
+}
+
+//Student Controller (APIs)
+package com.lms.controller;
+
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+import com.lms.model.*;
+import com.lms.repository.*;
+import com.lms.service.StudentService;
+
+@RestController
+@RequestMapping("/api/student")
+public class StudentController {
+
+    private final StudentService service;
+    private final UserRepository userRepo;
+    private final CourseRepository courseRepo;
+    private final AssignmentRepository assignmentRepo;
+
+    public StudentController(StudentService service,
+                             UserRepository userRepo,
+                             CourseRepository courseRepo,
+                             AssignmentRepository assignmentRepo) {
+        this.service = service;
+        this.userRepo = userRepo;
+        this.courseRepo = courseRepo;
+        this.assignmentRepo = assignmentRepo;
+    }
+
+    // Enroll in course
+    @PostMapping("/enroll/{studentId}/{courseId}")
+    public Enrollment enroll(@PathVariable Long studentId,
+                             @PathVariable Long courseId) {
+        User student = userRepo.findById(studentId).orElseThrow();
+        Course course = courseRepo.findById(courseId).orElseThrow();
+        return service.enroll(student, course);
+    }
+
+    // Submit assignment
+    @PostMapping("/submit/{studentId}/{assignmentId}")
+    public Submission submit(@PathVariable Long studentId,
+                             @PathVariable Long assignmentId,
+                             @RequestBody String content) {
+        User student = userRepo.findById(studentId).orElseThrow();
+        Assignment assignment = assignmentRepo.findById(assignmentId).orElseThrow();
+        return service.submitAssignment(student, assignment, content);
+    }
+
+    // Track progress
+    @GetMapping("/progress/{studentId}")
+    public List<Enrollment> progress(@PathVariable Long studentId) {
+        User student = userRepo.findById(studentId).orElseThrow();
+        return service.getProgress(student);
+    }
+}
